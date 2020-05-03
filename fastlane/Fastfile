@@ -1,0 +1,44 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:ios)
+
+
+    if is_ci?
+      ENV["FASTLANE_SKIP_UPDATE_CHECK"] = "true"
+      version = ENV['XCODE_VERSION'] ? ENV['XCODE_VERSION'] : "11.1"
+      xcversion( version: version )
+      setup_jenkins(unlock_keychain: false)
+    else
+      setup_jenkins(force: true,
+        output_directory: "output",
+        derived_data_path: "derivedData",
+        unlock_keychain: false
+      )
+    end
+platform :ios do
+  desc "Description of what the lane does"
+  lane :test do
+
+    cocoapods(silent: true)
+    multi_scan(
+      try_count: 3,      
+      fail_build: false,
+      skip_build: false,
+      parallel_testrun_count: 4,
+      invocation_based_tests: true
+    )
+  end
+end
